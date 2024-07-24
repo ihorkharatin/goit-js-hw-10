@@ -3,40 +3,39 @@ import 'izitoast/dist/css/iziToast.min.css';
 
 const refs = {
   formEl: document.querySelector('.form'),
+  bntEl: document.querySelector('button'),
 };
 
 refs.formEl.addEventListener('submit', e => {
   e.preventDefault();
+  const formData = new FormData(refs.formEl);
+  const delay = formData.get('delay');
+  const status = formData.get('state');
 
-  const delay = +refs.formEl.elements.delay.value;
-  if (delay < 0) return;
+  const isSuccess = status === 'fulfilled';
 
-  createPromise(delay)
-    .then(delay =>
-      iziToast.success({
-        message: `✅ Fulfilled promise in ${delay}ms`,
-        position: 'topRight',
-        messageColor: '#fff',
-        progressBarColor: '#fff',
-        backgroundColor: '#59a10d',
-      })
-    )
-    .catch(delay =>
-      iziToast.error({
-        message: `❌ Rejected promise in ${delay}ms`,
-        position: 'topRight',
-        iconColor: '#fff',
-        progressBarColor: '#fff',
-        backgroundColor: '#ef4040',
-      })
-    )
-    .finally(() => {
-      refs.formEl.elements.delay.value = '';
-      const radioButtons = refs.formEl.elements.state;
-      for (let i = 0; i < radioButtons.length; i++) {
-        radioButtons[i].checked = false;
+  const promise = new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (isSuccess) {
+        resolve();
+      } else {
+        reject();
       }
-    });
+    }, delay);
+  });
+
+  // Registering promise callbacks
+  promise
+    .then(value =>
+      iziToast.success({
+        message: `Fulfilled promise in ${delay}ms`,
+      })
+    )
+    .catch(error =>
+      iziToast.error({
+        message: `Rejected promise in ${delay}ms`,
+      })
+    );
 });
 
 function createPromise(delay) {
